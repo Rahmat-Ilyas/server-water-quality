@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Quality Monitoring System | Dashboard Real-time</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Socket.IO Client -->
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-box">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1>Water Quality Monitoring System</h1>
+          <p class="subtitle">Pemantauan Sensor Lingkungan Air Bersih (Suhu, pH, DO, TDS, Turbidity)</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="status-pill status-online" id="connectionBadge">
+          <span class="pulse-dot"></span>
+          <span id="connectionText">Real-time Live</span>
+        </div>
+        <div class="overall-badge" id="overallStatusBadge">
+          <span class="label">Kondisi Air:</span>
+          <strong id="overallStatusText">Memuat...</strong>
+        </div>
+      </div>
+    </header>
+
+    <!-- 5 Metric Cards Grid -->
+    <section class="metrics-grid">
+      <!-- 1. Suhu -->
+      <div class="metric-card card-suhu">
+        <div class="card-header">
+          <span class="sensor-title">Suhu Air</span>
+          <span class="badge-tag">Normal: 26 - 29.5°C</span>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value">
+            <span id="valSuhu">--.-</span><span class="unit">°C</span>
+          </div>
+          <div class="sensor-icon icon-suhu">🌡️</div>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="barSuhu" style="width: 50%;"></div>
+        </div>
+        <div class="card-footer">
+          <span>Target Ideal: 27.5 °C</span>
+          <span class="card-status status-good" id="statusSuhu">Optimal</span>
+        </div>
+      </div>
+
+      <!-- 2. pH -->
+      <div class="metric-card card-ph">
+        <div class="card-header">
+          <span class="sensor-title">Derajat Keasaman (pH)</span>
+          <span class="badge-tag">Normal: 6.8 - 7.6</span>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value">
+            <span id="valPh">--.--</span><span class="unit">pH</span>
+          </div>
+          <div class="sensor-icon icon-ph">🧪</div>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="barPh" style="width: 50%;"></div>
+        </div>
+        <div class="card-footer">
+          <span>Netral Ideal: 7.0 - 7.4</span>
+          <span class="card-status status-good" id="statusPh">Netral</span>
+        </div>
+      </div>
+
+      <!-- 3. Dissolved Oxygen (DO) -->
+      <div class="metric-card card-do">
+        <div class="card-header">
+          <span class="sensor-title">Oksigen Terlarut (DO)</span>
+          <span class="badge-tag">Min: > 5.5 mg/L</span>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value">
+            <span id="valDo">--.--</span><span class="unit">mg/L</span>
+          </div>
+          <div class="sensor-icon icon-do">🫧</div>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="barDo" style="width: 65%;"></div>
+        </div>
+        <div class="card-footer">
+          <span>Kebutuhan Biologis: Tinggi</span>
+          <span class="card-status status-good" id="statusDo">Kaya Oksigen</span>
+        </div>
+      </div>
+
+      <!-- 4. TDS -->
+      <div class="metric-card card-tds">
+        <div class="card-header">
+          <span class="sensor-title">Padatan Terlarut (TDS)</span>
+          <span class="badge-tag">Batas: &lt; 350 ppm</span>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value">
+            <span id="valTds">---</span><span class="unit">ppm</span>
+          </div>
+          <div class="sensor-icon icon-tds">🔬</div>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="barTds" style="width: 45%;"></div>
+        </div>
+        <div class="card-footer">
+          <span>Mineral Standar: Bersih</span>
+          <span class="card-status status-good" id="statusTds">Baik</span>
+        </div>
+      </div>
+
+      <!-- 5. Turbidity -->
+      <div class="metric-card card-turbidity">
+        <div class="card-header">
+          <span class="sensor-title">Kekeruhan (Turbidity)</span>
+          <span class="badge-tag">Batas: &lt; 5.0 NTU</span>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value">
+            <span id="valTurbidity">-.--</span><span class="unit">NTU</span>
+          </div>
+          <div class="sensor-icon icon-turbidity">💧</div>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="barTurbidity" style="width: 30%;"></div>
+        </div>
+        <div class="card-footer">
+          <span>Standar Kekeruhan: Jernih</span>
+          <span class="card-status status-good" id="statusTurbidity">Jernih</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Chart Section -->
+    <section class="chart-section">
+      <div class="chart-header">
+        <div class="chart-title-area">
+          <h2>Grafik Tren Parameter Kualitas Air</h2>
+          <span class="chart-subtitle">Pembaruan real-time setiap 3 detik via WebSocket</span>
+        </div>
+
+        <div class="chart-controls">
+          <div class="filter-wrapper">
+            <label for="timeFilter">Rentang Riwayat:</label>
+            <select id="timeFilter" class="select-filter">
+              <option value="last20" selected>20 Data Terakhir (Live Stream)</option>
+              <option value="1h">1 Jam Terakhir (Rata-rata 1 mnt)</option>
+              <option value="4h">4 Jam Terakhir (Rata-rata 5 mnt)</option>
+              <option value="24h">24 Jam Terakhir (Rata-rata 30 mnt)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="waterChart"></canvas>
+      </div>
+    </section>
+
+    <!-- History Table Section -->
+    <section class="table-section">
+      <div class="table-header">
+        <h2>Log Pembacaan Sensor Terbaru</h2>
+        <span class="update-info">Terakhir diperbarui: <strong id="lastUpdateTime">--:--:--</strong></span>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Waktu Rekam</th>
+              <th>Suhu (°C)</th>
+              <th>pH</th>
+              <th>DO (mg/L)</th>
+              <th>TDS (ppm)</th>
+              <th>Turbidity (NTU)</th>
+              <th>Status Mutu</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; color: #94a3b8; padding: 20px;">Mengambil data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Water Quality Monitoring System &bull; Node.js Backend &bull; NeDB Database &bull; Socket.IO</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+

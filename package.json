@@ -1,0 +1,16 @@
+{
+  "name": "server-water-quality",
+  "version": "1.0.0",
+  "description": "Water Quality Monitoring System Dashboard with Realistic Sensor Simulator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@seald-io/nedb": "^4.1.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
+

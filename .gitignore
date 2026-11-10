@@ -1,0 +1,4 @@
+node_modules/
+water_data.db
+*.db
+.env
